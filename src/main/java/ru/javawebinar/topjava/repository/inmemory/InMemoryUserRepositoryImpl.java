@@ -8,38 +8,47 @@ import ru.javawebinar.topjava.repository.UserRepository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryUserRepositoryImpl implements UserRepository {
-    private static final Logger log = LoggerFactory.getLogger(InMemoryUserRepositoryImpl.class);
+    private Map<Integer, User> repository = new ConcurrentHashMap<>();
+    private AtomicInteger counter = new AtomicInteger(0);
 
     @Override
     public boolean delete(int id) {
-        log.info("delete {}", id);
-        return true;
+        return repository.remove(id) != null;
     }
 
     @Override
     public User save(User user) {
-        log.info("save {}", user);
-        return user;
+        if (user.isNew()) {
+            user.setId(counter.incrementAndGet());
+            repository.put(user.getId(), user);
+            return user;
+        }
+        return repository.computeIfPresent(user.getId(), (k, v) -> user);
     }
 
     @Override
     public User get(int id) {
-        log.info("get {}", id);
-        return null;
+        return repository.get(id);
     }
 
     @Override
     public List<User> getAll() {
-        log.info("getAll");
-        return Collections.emptyList();
+        return (List<User>) repository.values();
     }
 
     @Override
     public User getByEmail(String email) {
-        log.info("getByEmail {}", email);
-        return null;
+        List<User> users = getAll().stream()
+                .filter(user -> user.getEmail().equals(email))
+                .collect(Collectors.toList());
+        return users.size() != 0 ? users.get(0) : null;
     }
 }
