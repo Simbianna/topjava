@@ -23,7 +23,7 @@ import static ru.javawebinar.topjava.MealTestData.*;
 
 
 @ContextConfiguration({
-        "classpath:spring/spring-app-test.xml",
+        "classpath:spring/spring-app.xml",
         "classpath:spring/spring-db.xml"
 })
 @RunWith(SpringRunner.class)
@@ -41,19 +41,28 @@ public class MealServiceTest {
 
     @Test
     public void get() throws Exception {
+//        for (Meal m : service.getAll(TRUE_USER_ID)) {
+//            System.out.println("PRINT: " + m.getId() + ", " + m.getDateTime() + ", "
+//                    + m.getDescription() + ", "
+//                    + m.getCalories() + ", ");
+//        }
         Meal meal = service.get(TRUE_MEAL_ID, TRUE_USER_ID);
         assertMatch(meal, TRUE_MEAL);
     }
 
     @Test(expected = NotFoundException.class)
-    public void getFailedWrongUserId() throws Exception {
-        Meal meal = service.get(TRUE_MEAL_ID, FALSE_USER_ID);
-        assertMatch(meal, TRUE_MEAL);
+    public void getWrongUserId() throws Exception {
+       service.get(TRUE_MEAL_ID, FALSE_USER_ID);
     }
 
 
+    @Test(expected = NotFoundException.class)
+    public void getWrongMealId() throws Exception {
+        service.get(FAKE_MEAL_ID, TRUE_USER_ID);
+    }
+
     @Test(expected = ComparisonFailure.class)
-    public void getFailedWrongMealId() throws Exception {
+    public void getUnequalMeals() throws Exception {
         Meal meal = service.get(TRUE_MEAL_ID, TRUE_USER_ID);
         assertMatch(meal, FALSE_MEAL);
     }
@@ -61,17 +70,17 @@ public class MealServiceTest {
     @Test
     public void delete() {
         service.delete(TRUE_MEAL_ID, TRUE_USER_ID);
-        assertMatch(service.getAll(TRUE_USER_ID),MEALS_AFTER_DELETE);
+        assertMatch(service.getAll(TRUE_USER_ID), MEALS_AFTER_DELETE);
     }
 
-    @Test(expected = ru.javawebinar.topjava.util.exception.NotFoundException.class)
+    @Test(expected = NotFoundException.class)
     public void deleteWrongUserId() {
         service.delete(TRUE_MEAL_ID, FALSE_USER_ID);
     }
 
     @Test(expected = NotFoundException.class)
     public void deleteWrongMealId() {
-        service.delete(FALSE_MEAL_ID, TRUE_USER_ID);
+        service.delete(FAKE_MEAL_ID, TRUE_USER_ID);
     }
 
     @Test
@@ -90,14 +99,14 @@ public class MealServiceTest {
 
     @Test
     public void getBetweenDateTimes() {
-        List<Meal> filteredMeal = service.getBetweenDateTimes(LocalDateTime.of(2015, Month.MAY, 30,0,0),
+        List<Meal> filteredMeal = service.getBetweenDateTimes(LocalDateTime.of(2015, Month.MAY, 30, 0, 0),
                 LocalDateTime.of(2015, Month.MAY, 30, 23, 59), TRUE_USER_ID);
         assertMatch(filteredMeal, MEALS_FILTERED_BY_DATE);
     }
 
     @Test(expected = AssertionError.class)
     public void getBetweenDateTimesFailed() {
-        List<Meal> filteredMeal = service.getBetweenDateTimes(LocalDateTime.of(2015, Month.MAY, 30,0,0),
+        List<Meal> filteredMeal = service.getBetweenDateTimes(LocalDateTime.of(2015, Month.MAY, 30, 0, 0),
                 LocalDateTime.of(2015, Month.MAY, 30, 23, 59), TRUE_USER_ID);
         assertMatch(filteredMeal, MEALS);
     }
@@ -109,15 +118,21 @@ public class MealServiceTest {
     }
 
     @Test
-    public void update() throws Exception{
+    public void update() throws Exception {
         Meal updated = new Meal(TRUE_MEAL);
         updated.setDescription("UpdatedDesc");
         updated.setCalories(330);
-        service.update(updated,TRUE_USER_ID);
+        service.update(updated, TRUE_USER_ID);
         assertMatch(service.get(TRUE_MEAL_ID, TRUE_USER_ID), updated);
     }
 
     @Test
-    public void create() {
+    public void create() throws Exception {
+        Meal newMeal = new Meal(LocalDateTime.of(2001, Month.JUNE, 10, 10, 0), "New", 200);
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!! " + newMeal.isNew());
+        Meal created = service.create(newMeal, TRUE_USER_ID);
+        newMeal.setId(created.getId());
+        assertMatch(service.getAll(TRUE_USER_ID),MEALS_WITH_NEW_MEAL);
+
     }
 }

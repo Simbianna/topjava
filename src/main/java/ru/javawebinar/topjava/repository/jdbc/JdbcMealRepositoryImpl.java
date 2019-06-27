@@ -48,7 +48,7 @@ public class JdbcMealRepositoryImpl implements MealRepository {
         } else if (namedParameterJdbcTemplate.update(
                 "UPDATE meals SET description=:description, date_time=:dateTime," +
                         "calories=:calories WHERE id=:id AND user_id=:userId", map) == 0) {
-            return null;
+            return meal;
         }
         return meal;
     }
