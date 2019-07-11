@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava;
 
 public class Profiles {
+
     public static final String
             JDBC = "jdbc",
             JPA = "jpa",
@@ -25,5 +26,28 @@ public class Profiles {
                 throw new IllegalStateException("Could not find DB driver");
             }
         }
+    }
+
+    public static String[] getActiveSpringProfile() {
+        String[] result = new String[2];
+        result[0] = getActiveDbProfile();
+        try {
+            Class.forName("ru.javawebinar.topjava.repository.datajpa.DataJpaMealRepository");
+            result[1] = DATAJPA;
+        } catch (ClassNotFoundException ex) {
+        }
+        try {
+            Class.forName("ru.javawebinar.topjava.repository.jdbc.JdbcMealRepository");
+            result[1] = JDBC;
+        } catch (ClassNotFoundException ex) {
+        }
+        try {
+            Class.forName("ru.javawebinar.topjava.repository.jpa.JpaMealRepository");
+            result[1] = JPA;
+        } catch (ClassNotFoundException ex) {
+            throw new IllegalStateException("Could not find Spring driver");
+        }
+
+        return result;
     }
 }
