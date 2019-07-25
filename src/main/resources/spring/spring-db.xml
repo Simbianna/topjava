@@ -59,8 +59,10 @@
 
     <beans profile="jdbc">
         <context:component-scan base-package="ru.javawebinar.**.repository.jdbc"/>
+        <bean class="ru.javawebinar.topjava.repository.JpaUtil"/>
         <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
             <constructor-arg ref="dataSource"/>
+
         </bean>
 
         <bean id="namedJdbcTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
@@ -117,5 +119,6 @@
     <beans profile="datajpa">
         <context:component-scan base-package="ru.javawebinar.**.repository.datajpa"/>
         <jpa:repositories base-package="ru.javawebinar.**.repository.datajpa"/>
+
     </beans>
 </beans>
